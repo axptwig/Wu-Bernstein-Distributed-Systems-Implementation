@@ -12,7 +12,6 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
          self.request.sendall("ACK") #replace with some appropriate responce...
          if node:
              node.receive(self.data)
-
  class Node():
      def __init__(self, ip):
          self.ip = ip
@@ -41,9 +40,3 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
  if __name__ == "__main__":
      node = Node(argv[1])
      dic = EntrySet()
- class EntrySet():
-     def __init__(self):
-         self.calendar = []
-     def add(self, entry):
-         calendar. = 1
-     def delete(self, entry):

@@ -21,3 +21,11 @@ class Entry():
         return
     def __hash__(self):
         return hash(self.__repr__())
+class EntrySet():
+    def __init__(self):
+        self.calendar = []
+
+    def add(self, entry):
+        calendar. = 1
+
+    def delete(self, entry):
