@@ -24,8 +24,12 @@ class Entry():
 class EntrySet():
     def __init__(self):
         self.calendar = []
-
+    def create_from_log(self):
+        self.calendar = []
+        #create calendar from it
+        #use timetable and the log file
     def add(self, entry):
-        calendar. = 1
+        calendar[0] = 1
 
     def delete(self, entry):
+        calendar[0] = 1

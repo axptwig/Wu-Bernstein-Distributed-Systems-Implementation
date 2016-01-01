@@ -1,4 +1,6 @@
 import SocketServer
+import calendar
+import os
 from threading import Thread
 from sys import argv
 import socket
@@ -12,14 +14,16 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
         self.request.sendall("ACK") #replace with some appropriate responce...
         if node:
             node.receive(self.data)
-
 class Node():
     def __init__(self, ip):
         self.ip = ip
         listener = SocketServer.TCPServer((self.ip, 6000), MyTCPHandler)
         self.thread = Thread(target = listener.serve_forever)
         self.thread.start()
-
+        dic = calendar.EntrySet()
+        if(os.path.isfile("log.dat")):
+            dic.create_from_log()
+        file = open('log.dat', 'a')
     def init_calendar(self):
         self.table = TimeTable(1)
         self.events = []
@@ -63,4 +67,3 @@ class Node():
 
 if __name__ == "__main__":
     node = Node(argv[1])
-    dic = EntrySet()
