@@ -1,9 +1,10 @@
+import json
 # Enum to represent the different types of messages
 class MessageTypes:
     Insert, Delete = range(2)
 
 class Event:
-    def __init__(self, typ, time, node, entry):
+    def __init__(self, typ=None, time=None, node=None, entry=None):
         self.type = typ
         self.time = time
         self.node = node
@@ -24,8 +25,8 @@ class Event:
 
 class Insert(Event):
     def apply(entry_set):
-        return entries.add(entry)
+        entries.add(entry)
 
 class Delete(Event):
     def apply(entry_set):
-        return entries.delete(entry)
+        entries.delete(entry)
