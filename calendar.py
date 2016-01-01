@@ -19,8 +19,6 @@ class Entry():
             return False
     def __ne__(self, other):
         return (not self.__eq__(other))
-    def __lt__(self, other):
-        return
     def __hash__(self):
         return hash(self.__repr__())
     def to_JSON(self):
@@ -36,10 +34,14 @@ class EntrySet():
         self.calendar = []
 
     def add(self, entry):
-        calendar. = 1
+        if(calendar.find(entry)):
+            return False
+        else:
+            calendar.append(entry)
+            return true
 
     def delete(self, entry):
-        pass
+        calendar.remove(entry)
 
     def to_JSON(self):
         return json.dumps(self, default=lambda o: o.__dict__,
