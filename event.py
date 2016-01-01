@@ -20,13 +20,10 @@ class Event:
         a.__dict__ = js
         return a
 
-    def apply(entry_set):
-        raise Exception("Event is an abstract base")
+    def apply(self, entry_set):
+        if self.type == MessageTypes.Insert:
+            return entry_set.add(self.entry)
+        elif self.type == MessageTypes.Delete:
+            return entry_set.delete(self.entry)
 
-class Insert(Event):
-    def apply(entry_set):
-        entries.add(entry)
-
-class Delete(Event):
-    def apply(entry_set):
-        entries.delete(entry)
+        raise Exception("Event was not one of the types")
