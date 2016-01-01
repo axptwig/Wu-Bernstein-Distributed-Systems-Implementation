@@ -11,7 +11,7 @@ class Entry():
         self.start = start
 
     def __repr__(self):
-        return "Entry(%s, %s, %s, %s)" % (self.participants, self.name, self.day, self.start)
+        return "Name: %s\nParticipants: %s\nDay: %s\nTime: %s)" % (self.name, self.participants, self.day, self.start)
     def __eq__(self, other):
         if isinstance(other, Item):
             return ((self.participants == other.participants) and (self.name == other.name) and (self.day == other.day) and (self.start == other.start))
@@ -49,14 +49,14 @@ class EntrySet():
         #using timetable and the log file
 
     def add(self, entry):
-        if (calendar.find(entry)):
+        if calendar.find(entry):
             return false
         else:
             calendar.append(entry)
             return true
 
     def delete(self, entry):
-        if (calendar.find(entry)):
+        if calendar.find(entry):
             calendar.remove(entry)
             return true
         else:
