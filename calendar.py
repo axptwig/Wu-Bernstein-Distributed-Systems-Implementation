@@ -21,21 +21,36 @@ class Entry():
         return (not self.__eq__(other))
     def __hash__(self):
         return hash(self.__repr__())
+
     def to_JSON(self):
         return json.dumps(self, default=lambda o: o.__dict__,
             sort_keys=True)
+
     @staticmethod
     def load(js):
         a = Entry()
         a.__dict__ = js
         return a
+
+
+
+
+
 class EntrySet():
     def __init__(self):
         self.calendar = []
 
+
+
+    #log file exists with entries
+    def create_from_log(self):
+        self.calendar = []
+        #create calendar from it
+        #using timetable and the log file
+
     def add(self, entry):
-        if(calendar.find(entry)):
-            return False
+        if (calendar.find(entry)):
+            return false
         else:
             calendar.append(entry)
             return true
@@ -46,6 +61,7 @@ class EntrySet():
     def to_JSON(self):
         return json.dumps(self, default=lambda o: o.__dict__,
             sort_keys=True)
+
     @staticmethod
     def load(js):
         a = EntrySet()
