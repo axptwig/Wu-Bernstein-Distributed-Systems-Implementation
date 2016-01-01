@@ -63,7 +63,7 @@ class Node():
             self.table.sync(new_table)
 
 
-    def send(self, _id):
+    def send(self, _id, event=None):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             data = "data"
@@ -76,8 +76,13 @@ class Node():
             received = sock.recv(1024)
             # Add To EntrySet
         except:
-            pass
             # Node Down cancel conflict
+            if not event == None:
+                event.type = MessageTypes.Delete
+                event = event.apply(self.entry_set)
+                self.events.append(event)
+            pass
+
         finally:
             sock.close()
 
@@ -151,8 +156,3 @@ if __name__ == "__main__":
             }
 
             node.send(json.dumps(data))
-
-
-
-
-    
