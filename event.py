@@ -24,8 +24,8 @@ class Event:
 
 class Insert(Event):
     def apply(entry_set):
-        entries.add(entry)
+        return entries.add(entry)
 
 class Delete(Event):
     def apply(entry_set):
-        entries.delete(entry)
+        return entries.delete(entry)
