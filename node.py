@@ -7,6 +7,9 @@ import socket
 import time
 import calendar
 import os
+
+from event import Event, MessageTypes
+
 node = None
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
@@ -21,21 +24,23 @@ class Node():
     def __init__(self, _id):
         self.id = int(_id)
         self.ip = Node.ips[self.id]
-        if os.path.isfile("log.dat"):
-            self.entry_set.create_from_log()
-        self.log = open("log.txt", "a")
-        listener = SocketServer.TCPServer((self.ip, 6000), MyTCPHandler)
-        self.thread = Thread(target = listener.serve_forever)
+
+        self.listener = SocketServer.TCPServer(('0.0.0.0', 6000), MyTCPHandler)
+        self.thread = Thread(target = self.listener.serve_forever)
         self.thread.start()
         self.entry_set = calendar.EntrySet()
+        if os.path.isfile("log.dat"):
+            self.entry_set.create_from_log()
 
-
-
-
+        self.init_calendar()
 
     def init_calendar(self):
-        self.table = TimeTable(1)
+        self.table = TimeTable(len(Node.ips))
         self.events = []
+
+    def kill():
+        print('killin')
+        self.listener.shutdown()
 
     # Expect data in the form:
     # {'table': <serialized table>, 'events': <array of events>}
@@ -58,18 +63,12 @@ class Node():
                     res = event.apply(self.entry_set)
                     if res:
                         self.events.append(event)
-                        data = {
-                            'events': [event.to_JSON()],
-                        }
-                        log.write(json.dumps(data))
                     elif event.type == MessageTypes.Insert:
                         send_failure(event)
 
-
             self.table.sync(new_table)
 
-
-    def send(self, _id, event=None):
+    def send(self, _id):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             data = "data"
@@ -82,13 +81,8 @@ class Node():
             received = sock.recv(1024)
             # Add To EntrySet
         except:
-            # Node Down cancel conflict
-            if not event == None:
-                event.type = MessageTypes.Delete
-                event = event.apply(self.entry_set)
-                self.events.append(event)
             pass
-
+            # Node Down cancel conflict
         finally:
             sock.close()
 
@@ -110,6 +104,10 @@ class Node():
         return self.table.get(node_id, event.node) >= event.time
 
     def send_to_node(self, node_id):
+        # Don't send anything if the node is this
+        if node_id == self.id:
+            return
+
         partial = []
         for event in self.events:
             if not self.has_event(event, node_id):
@@ -122,43 +120,46 @@ class Node():
 
         self.send(json.dumps(data))
 
-if __name__ == "__main__":
+    def add_entry(self, entry):
+        event = Event(MessageTypes.Insert, time.time(), self.id, entry)
+        self.events.append(event)
+
+        for id in entry.participants:
+            self.send_to_node(id)
+
+def main():
     Node.ips = open('ip', 'r').read().split("\n")[0:4]
     node = Node(argv[1])
     if (len(argv) == 2):
-        print "[v] View Appointments"
-        print "[a] Add Appointment"
-        print "[d] Delete Appointment"
 
-        resp = raw_input("Choice: ").lower()
-        entries = list(node.entry_set)
-        if resp == 'v':
-            i = 1
-            for entry in entries:
-                print "" + i + ") " + entry.__repr__()
+        while True:
+            print "[v] View Appointments"
+            print "[a] Add Appointment"
+            print "[d] Delete Appointment"
 
-        elif resp == 'a':
-            part = raw_input("Node Ids of participants (comma seperated): ").split(",")
-            nam = raw_input("Event name: ")
-            day = raw_input("Day: ")
-            time = raw_input("Time: ")
+            resp = raw_input("Choice: ").lower()
+            if resp == 'v':
+                print(node.entry_set)
 
-            entry = Entry(part, nam, day, time)
-            event = Event(Event.MessageType.Insert, time.time(), node, entry)
-            data = {
-                'table': node.table.to_JSON(),
-                'events': [event.to_JSON()],
-            }
-            node.send(json.dumps(data))
+            elif resp == 'a':
+                part = map(int, raw_input("Node Ids of participants (comma seperated): ").split(","))
+                nam = raw_input("Event name: ")
+                day = raw_input("Day: ")
+                time = raw_input("Time: ")
 
+                entry = Entry(part, nam, day, time)
+                node.add_entry(entry)
 
-        elif resp == 'd':
-            resp = int(raw_input("Enter Appointment number: "))
-            entry = node.entries[resp]
-            event = Event(Event.MessageType.Delete, time.time(), node, entry)
-            data = {
-                'table': node.table.to_JSON(),
-                'events': [event.to_JSON()],
-            }
+            elif resp == 'd':
+                resp = int(raw_input("Enter Appointment number: "))
+                entry = node.entries[resp]
+                event = Event(MessageType.Delete, time.time(), node, entry)
+                data = {
+                    'table': node.table.to_JSON(),
+                    'events': [event.to_JSON()],
+                }
 
-            node.send(json.dumps(data))
+                node.send(json.dumps(data))
+
+if __name__ == "__main__":
+    main()

@@ -4,11 +4,16 @@ import json
 class TimeTable(object):
     def __init__(self, dim=None):
         self.dim = dim
+        self.init_table()
+
+    def init_table(self):
         self.table = []
+        for _ in range(self.dim):
+            self.table.append([0] * self.dim)
 
     # When syncing with a new node, just update all of our clock times to
     # the max of both tables
-    def sync(t2):
+    def sync(self, t2):
         assert len(t2) == len(self.table)
 
         for i in range(self.dim):
@@ -16,10 +21,10 @@ class TimeTable(object):
                 self.table[i][j] = max(self.table[i][j], t3[i][j])
 
     # Call this when a node performs a local "insert" or "delete" operation
-    def update(node, count):
+    def update(self, node, count):
         self.table[node][node] = count
 
-    def get(i, j):
+    def get(self, i, j):
         return self.table[i][j]
 
     def to_JSON(self):
