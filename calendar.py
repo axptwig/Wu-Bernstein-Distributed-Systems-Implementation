@@ -39,6 +39,9 @@ class Entry():
 class EntrySet():
     def __init__(self):
         self.calendar = []
+    def __repr__(self):
+        strs = map(str, self.calendar)
+        return '\n'.join(strs)
 
     def __getitem__(self, key):
         return self.calendar[key]
