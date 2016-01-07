@@ -1,7 +1,6 @@
 import SocketServer
-from threading import Thread
+from threading import Thread, Lock
 from sys import argv
-import sys
 from calendar import *
 from time_table import *
 import socket
@@ -15,23 +14,26 @@ node = None
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
-        print "got some information"
+        global node
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
-        if self.node:
-            print "test"
-            self.node.receive(self.data)
+        node.lock.acquire()
+        if node:
+            node.receive(self.data)
+        node.lock.release()
 
 class Node():
     ips = []
     def __init__(self, _id):
         self.id = int(_id)
         self.ip = Node.ips[self.id]
+        self.lock = Lock()
         self.listener = SocketServer.TCPServer(('0.0.0.0', 6000), MyTCPHandler)
         self.listener.node = self
         self.thread = Thread(target = self.listener.serve_forever)
         self.thread.start()
         self.entry_set = calendar.EntrySet()
+
 
         if os.path.isfile("log.dat"):
             self.entry_set.create_from_log()
@@ -50,7 +52,6 @@ class Node():
     # Expect data in the form:
     # {'table': <serialized table>, 'events': <array of events>}
     def receive(self, raw):
-        print "I received some dicks n stuff"
         # unserialize the data, somehow
         data = json.loads(raw)
         if data['type'] == "failure":
@@ -84,6 +85,7 @@ class Node():
             data = "data"
            # print("Sending Data from client")
             # Connect to server and send data
+            sock.settimeout(3)
             sock.connect((Node.ips[_id], 6000))
             sock.sendall(event)
 
@@ -91,7 +93,6 @@ class Node():
             received = sock.recv(1024)
             # Add To EntrySet
         except:
-            print "asdfsdf"
             # Node Down cancel conflict
             if not event == None:
                 d = json.loads(event)
@@ -129,6 +130,8 @@ class Node():
 
         partial = []
         for event in self.events:
+            if not isinstance(event, Event):
+                continue
             if not self.has_event(event, node_id):
                 partial.append(event.to_JSON())
 
@@ -146,8 +149,6 @@ class Node():
 
         for id in entry.participants:
             self.send_to_node(id)
-    def kill_thread(self):
-        self.thread.terminate()
 
 def main():
     Node.ips = open('ip', 'r').read().split("\n")[0:4]
@@ -158,7 +159,6 @@ def main():
             print "[v] View Appointments"
             print "[a] Add Appointment"
             print "[d] Delete Appointment"
-            print "[q] Quit Application"
 
             resp = raw_input("Choice: ").lower()
             if resp == 'v':
@@ -185,9 +185,6 @@ def main():
                 for id in entry.participants:
                     if not id == node_id:
                         node.send(id, json.dumps(data))
-            elif resp == 'q':
-                #node.kill_thread()
-                sys.exit(0)
 
 if __name__ == "__main__":
     main()
