@@ -10,14 +10,9 @@ class Entry():
         self.start = start
 
     def __repr__(self):
-<<<<<<< HEAD
         return "Participants: %s, Name: %s, Day: %s, Time: %s" % (self.participants, self.name, self.day, self.start)
     def __eq__(self, other):
         if isinstance(other, Entry):
-=======
-       return "Participants: %s, Name: %s, Day: %s, Time: %s" % (self.participants, self.name, self.day, self.start
-        if isinstance(other, Item):
->>>>>>> origin/master
             return ((self.participants == other.participants) and (self.name == other.name) and (self.day == other.day) and (self.start == other.start))
         else:
             return False
@@ -36,28 +31,16 @@ class Entry():
         a.__dict__ = js
         return a
 
-
-
-
-
 class EntrySet():
     def __init__(self):
         self.calendar = []
+
     def __repr__(self):
         strs = map(str, self.calendar)
         for i in xrange(0, len(strs)):
             strs[i] = "[" + str(i) + "] " + strs[i]
         return '\n'.join(strs)
 
-<<<<<<< HEAD
-    def __repr__(self):
-        strs = map(str, self.calendar)
-        for i in xrange(0, len(strs)):
-            strs[i] = "[" + str(i) + "] " + strs[i]
-        return '\n'.join(strs)
-
-=======
->>>>>>> origin/master
     def __getitem__(self, key):
         return self.calendar[key]
 
@@ -77,11 +60,7 @@ class EntrySet():
             return True
 
     def delete(self, entry):
-<<<<<<< HEAD
         if entry in self.calendar:
-=======
-        if self.calendar.find(entry):
->>>>>>> origin/master
             self.calendar.remove(entry)
             return True
         else:
