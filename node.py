@@ -27,17 +27,32 @@ class Node():
     def __init__(self, _id):
         self.id = int(_id)
         self.ip = Node.ips[self.id]
+<<<<<<< HEAD
         self.lock = Lock()
         self.listener = SocketServer.TCPServer(('0.0.0.0', 6000), MyTCPHandler)
         self.listener.node = self
+=======
+
+        self.listener = SocketServer.TCPServer(('0.0.0.0', 6000), MyTCPHandler)
+>>>>>>> origin/master
         self.thread = Thread(target = self.listener.serve_forever)
         self.thread.start()
         self.entry_set = calendar.EntrySet()
 
+<<<<<<< HEAD
 
         if os.path.isfile("log.dat"):
             self.entry_set.create_from_log()
         self.log = open("log.dat", "a+")
+=======
+        if os.path.isfile("log.dat"):
+            self.entry_set.create_from_log()
+        self.log = open("log.txt", "a")
+        TimeTable.log = self.log
+        Event.log = self.log
+        Entry.log = self.log
+        EntrySet.log = self.log
+>>>>>>> origin/master
 
         self.init_calendar()
 
@@ -95,11 +110,16 @@ class Node():
         except:
             # Node Down cancel conflict
             if not event == None:
+<<<<<<< HEAD
                 d = json.loads(event)
                 dd = json.loads(d['events'][0])
                 event = Event.load(dd)
                 event.type = MessageTypes.Delete
                 event = event.apply(self.entry_set, self)
+=======
+                event.type = MessageTypes.Delete
+                event = event.apply(self.entry_set)
+>>>>>>> origin/master
                 self.events.append(event)
             pass
 
@@ -140,11 +160,19 @@ class Node():
             'events': partial,
         }
 
+<<<<<<< HEAD
         self.send(node_id, json.dumps(data))
 
     def add_entry(self, entry):
         event = Event(MessageTypes.Insert, time.time(), self.id, entry)
         event.apply(self.entry_set, self)
+=======
+        self.send(json.dumps(data))
+
+    def add_entry(self, entry):
+        event = Event(MessageTypes.Insert, time.time(), self.id, entry)
+        event.apply(self.entry_set)
+>>>>>>> origin/master
         self.events.append(event)
 
         for id in entry.participants:
@@ -152,8 +180,12 @@ class Node():
 
 def main():
     Node.ips = open('ip', 'r').read().split("\n")[0:4]
+<<<<<<< HEAD
     node_id = int(argv[1])
     node = Node(node_id)
+=======
+    node = Node(argv[1])
+>>>>>>> origin/master
     if (len(argv) == 2):
         while True:
             print "[v] View Appointments"
@@ -181,6 +213,7 @@ def main():
                     'table': node.table.to_JSON(),
                     'events': [event.to_JSON()],
                 }
+<<<<<<< HEAD
                 event.apply(node.entry_set, node)
                 for id in entry.participants:
                     if not id == node_id:
@@ -188,3 +221,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+
+                node.send(json.dumps(data))
+
+if __name__ == "__main__":
+    main()
+>>>>>>> origin/master
