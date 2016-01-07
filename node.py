@@ -1,6 +1,7 @@
 import SocketServer
 from threading import Thread
 from sys import argv
+import sys
 from calendar import *
 from time_table import *
 import socket
@@ -14,10 +15,12 @@ node = None
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
+        print "got some information"
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
-        if node:
-            node.receive(self.data)
+        if self.node:
+            print "test"
+            self.node.receive(self.data)
 
 class Node():
     ips = []
@@ -25,6 +28,7 @@ class Node():
         self.id = int(_id)
         self.ip = Node.ips[self.id]
         self.listener = SocketServer.TCPServer(('0.0.0.0', 6000), MyTCPHandler)
+        self.listener.node = self
         self.thread = Thread(target = self.listener.serve_forever)
         self.thread.start()
         self.entry_set = calendar.EntrySet()
@@ -46,6 +50,7 @@ class Node():
     # Expect data in the form:
     # {'table': <serialized table>, 'events': <array of events>}
     def receive(self, raw):
+        print "I received some dicks n stuff"
         # unserialize the data, somehow
         data = json.loads(raw)
         if data['type'] == "failure":
@@ -86,6 +91,7 @@ class Node():
             received = sock.recv(1024)
             # Add To EntrySet
         except:
+            print "asdfsdf"
             # Node Down cancel conflict
             if not event == None:
                 d = json.loads(event)
@@ -140,6 +146,8 @@ class Node():
 
         for id in entry.participants:
             self.send_to_node(id)
+    def kill_thread(self):
+        self.thread.terminate()
 
 def main():
     Node.ips = open('ip', 'r').read().split("\n")[0:4]
@@ -150,6 +158,7 @@ def main():
             print "[v] View Appointments"
             print "[a] Add Appointment"
             print "[d] Delete Appointment"
+            print "[q] Quit Application"
 
             resp = raw_input("Choice: ").lower()
             if resp == 'v':
@@ -176,6 +185,9 @@ def main():
                 for id in entry.participants:
                     if not id == node_id:
                         node.send(id, json.dumps(data))
+            elif resp == 'q':
+                #node.kill_thread()
+                sys.exit(0)
 
 if __name__ == "__main__":
     main()
