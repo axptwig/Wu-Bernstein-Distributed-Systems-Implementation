@@ -3,7 +3,6 @@ import datetime
 import json
 
 class Entry():
-
     def __init__(self, participants=None, name = None, day=None, start=None):
         self.participants = participants
         self.name = name
@@ -11,9 +10,9 @@ class Entry():
         self.start = start
 
     def __repr__(self):
-        return "Name: %s\nParticipants: %s\nDay: %s\nTime: %s)" % (self.name, self.participants, self.day, self.start)
+        return "Participants: %s, Name: %s, Day: %s, Time: %s" % (self.participants, self.name, self.day, self.start)
     def __eq__(self, other):
-        if isinstance(other, Item):
+        if isinstance(other, Entry):
             return ((self.participants == other.participants) and (self.name == other.name) and (self.day == other.day) and (self.start == other.start))
         else:
             return False
@@ -40,27 +39,36 @@ class EntrySet():
     def __init__(self):
         self.calendar = []
 
+    def __repr__(self):
+        strs = map(str, self.calendar)
+        for i in xrange(0, len(strs)):
+            strs[i] = "[" + str(i) + "] " + strs[i]
+        return '\n'.join(strs)
+
+    def __getitem__(self, key):
+        return self.calendar[key]
 
 
     #log file exists with entries
     def create_from_log(self):
         self.calendar = []
+
         #create calendar from it
-        #using timetable and the log file
+        #using log file
 
     def add(self, entry):
-        if calendar.find(entry):
-            return false
+        if entry in self.calendar:
+            return False
         else:
-            calendar.append(entry)
-            return true
+            self.calendar.append(entry)
+            return True
 
     def delete(self, entry):
-        if calendar.find(entry):
-            calendar.remove(entry)
-            return true
+        if entry in self.calendar:
+            self.calendar.remove(entry)
+            return True
         else:
-            return false
+            return False
 
     def to_JSON(self):
         return json.dumps(self, default=lambda o: o.__dict__,
