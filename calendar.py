@@ -1,6 +1,8 @@
 import time
 import datetime
 import json
+import sys
+import os
 
 class Entry():
     def __init__(self, participants=None, name = None, day=None, start=None, end=None):
@@ -8,7 +10,7 @@ class Entry():
         self.name = name
         self.day = day
         self.start = start
-        self.end = end
+    self.end = end
 
     def __repr__(self):
         return "Participants: %s, Name: %s, Day: %s, Time: %s - %s" % (self.participants, self.name, self.day, self.start, self.end)
@@ -26,30 +28,12 @@ class Entry():
         return json.dumps(self, default=lambda o: o.__dict__,
             sort_keys=True)
 
-    def is_valid(self, entry):
-        if self.day != entry.day:
-            return True
-        else:
-            caltime1 = self.start.split(':')
-            caltime2 = self.end.split(':')
-            entime1 = entry.start.split(':')
-            entime2 = entry.end.split(':')
-            c1 = int(caltime1[0])*60 + int(caltime1[1])
-            c2 = int(caltime2[0])*60 + int(caltime2[1])
-            e1 = int(entime1[0])*60 + int(entime1[1]) + 1
-            e2 = int(entime2[0])*60 + int(entime2[1]) - 1
-            if e1 > c1 and e1 < c2:
-                return False
-            if e2 > c1 and e2 < c2:
-                return False
-            else:
-                return True
-
     @staticmethod
     def load(js):
         a = Entry()
         a.__dict__ = js
         return a
+from event import Event
 
 class EntrySet():
     def __init__(self):
@@ -64,21 +48,32 @@ class EntrySet():
     def __getitem__(self, key):
         return self.calendar[key]
 
-
     #log file exists with entries
-    def create_from_log(self):
-        self.calendar = []
-
+    def create_from_log(self, node):
+        node.log.close()
+        log =  open('log.dat','r')
+        for l in log:
+            event = json.loads(l)
+            event = Event.load(event)
+            event.entry = Entry.load(event.entry)
+            event.apply(node.entry_set, node)
+            node.events.append(event)
+            for i in event.entry.participants:
+                if event.time > node.table.table[node.id][i]:
+                    node.table.table[node.id][i] = event.time
+        
+                
+        log.close()
+        
+        
         #create calendar from it
         #using log file
+        
+        
+        node.log = open("log.dat", "a+")
 
     def add(self, entry):
-        valid = True
-        for existing_entry in self.calendar:
-            if not entry.is_valid(existing_entry):
-                valid = False
-                print "scheduling conflict"
-        if entry in self.calendar or not valid:
+        if entry in self.calendar:
             return False
         else:
             self.calendar.append(entry)

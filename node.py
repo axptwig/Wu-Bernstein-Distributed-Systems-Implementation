@@ -35,12 +35,13 @@ class Node():
         self.thread = Thread(target = self.listener.serve_forever)
         self.thread.start()
         self.entry_set = calendar.EntrySet()
+        self.init_calendar()
+        self.log = open("log.dat", "a+")
+        self.last = None
 
         if os.path.isfile("log.dat"):
-            self.entry_set.create_from_log()
-        self.log = open("log.dat", "a+")
+            self.entry_set.create_from_log(self)
 
-        self.init_calendar()
 
     def init_calendar(self):
         self.table = TimeTable(len(Node.ips))
@@ -53,8 +54,9 @@ class Node():
     # Expect data in the form:
     # {'table': <serialized table>, 'events': <array of events>}
     def receive(self, raw):
+        print "I received some dicks n stuff"
+        # unserialize the data, somehow
         data = json.loads(raw)
-        print(self.table.table)
         print(data)
         if data['type'] == "failure":
             rec_failure(data)
@@ -75,12 +77,14 @@ class Node():
                     res = event.apply(self.entry_set, self)
                     if res:
                         self.events.append(event)
-                    else:
-                        if event.type == MessageTypes.Insert:
-                            self.send_failure(event)
+                        data = {
+                            'events': [event.to_JSON()],
+                        }
+                    elif event.type == MessageTypes.Insert:
+                        send_failure(event)
 
-            self.table.sync(new_table, self.id, data['node_id'])
-        print(self.table.table)
+            self.table.sync(new_table)
+
 
     def send(self, _id, event=None):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -117,18 +121,13 @@ class Node():
 
         print("Sending Failure command")
         data = {
-            'node_id': self.id,
             'type': 'failure',
             'event': event.to_JSON()
         }
         json.dumps(data)
-
     def rec_failure(self, data):
         data = json.loads(data)
         event = Event.load(json.loads(data['event']))
-        event.entry = Entry.load(event.entry)
-
-        self.delete_entry(event.entry)
 
     # Check if a node has a certain event
     def has_event(self,event, node_id):
@@ -148,7 +147,6 @@ class Node():
 
         data = {
             'type': 'sync',
-            'node_id': self.id,
             'table': self.table.to_JSON(),
             'events': partial,
         }
@@ -157,24 +155,11 @@ class Node():
 
     def add_entry(self, entry):
         event = Event(MessageTypes.Insert, time.time(), self.id, entry)
-        self.table.update(self.id, time.time() + 0.1)
         event.apply(self.entry_set, self)
         self.events.append(event)
 
         for id in entry.participants:
-            if not id == self.id:
-                self.send_to_node(id)
-
-    def delete_entry(self, entry):
-        event = Event(MessageTypes.Delete, time.time(), self.id, entry)
-        self.table.update(self.id, time.time() + 0.1)
-        event.apply(self.entry_set, self)
-        self.events.append(event)
-
-        for id in entry.participants:
-            if not id == self.id:
-                self.send_to_node(id)
-
+            self.send_to_node(id)
     def kill_thread(self):
         self.thread.terminate()
 
@@ -199,7 +184,7 @@ def main():
                 nam = raw_input("Event name: ")
                 day = raw_input("Day: ")
                 _startTime = raw_input("Start Time: ")
-                _endTime = raw_input("End Time: ")
+        _endTime = raw_input("End Time: ")
 
                 entry = Entry(part, nam, day, _startTime, _endTime)
                 node.add_entry(entry)
@@ -207,7 +192,15 @@ def main():
             elif resp == 'd':
                 resp = int(raw_input("Enter Appointment number: "))
                 entry = node.entry_set[resp]
-                node.delete_entry(entry)
+                event = Event(MessageTypes.Delete, time.time(), node, entry)
+                data = {
+                    'table': node.table.to_JSON(),
+                    'events': [event.to_JSON()],
+                }
+                event.apply(node.entry_set, node)
+                for id in entry.participants:
+                    if not id == node_id:
+                        node.send(id, json.dumps(data))
             elif resp == 'q':
                 #node.kill_thread()
                 sys.exit(0)
