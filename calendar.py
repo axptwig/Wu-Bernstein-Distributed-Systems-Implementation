@@ -3,7 +3,11 @@ import datetime
 import json
 
 class Entry():
+<<<<<<< HEAD
     def __init__(self, participants=None, name = None, day=None, start=None, end=None):
+=======
+    def __init__(self, participants=None, name = None, day=None, start=None):
+>>>>>>> origin/master
         self.participants = participants
         self.name = name
         self.day = day
@@ -11,10 +15,17 @@ class Entry():
     self.end = end
 
     def __repr__(self):
+<<<<<<< HEAD
         return "Participants: %s, Name: %s, Day: %s, Time: %s - %s" % (self.participants, self.name, self.day, self.start, self.end)
     def __eq__(self, other):
         if isinstance(other, Entry):
             return ((self.participants == other.participants) and (self.name == other.name) and (self.day == other.day) and (self.start == other.start) and (self.end == other.end)
+=======
+        return "Participants: %s, Name: %s, Day: %s, Time: %s" % (self.participants, self.name, self.day, self.start)
+    def __eq__(self, other):
+        if isinstance(other, Entry):
+            return ((self.participants == other.participants) and (self.name == other.name) and (self.day == other.day) and (self.start == other.start))
+>>>>>>> origin/master
         else:
             return False
     def __ne__(self, other):
@@ -32,14 +43,14 @@ class Entry():
         a.__dict__ = js
         return a
 
-
-
-
-
 class EntrySet():
     def __init__(self):
         self.calendar = []
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> origin/master
     def __repr__(self):
         strs = map(str, self.calendar)
         for i in xrange(0, len(strs)):
