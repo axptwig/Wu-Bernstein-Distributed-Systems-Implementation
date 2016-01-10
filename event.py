@@ -1,7 +1,4 @@
 import json
-
-from calendar import Entry
-
 # Enum to represent the different types of messages
 class MessageTypes:
     Insert, Delete = range(2)
@@ -12,8 +9,10 @@ class Event:
         self.time = time
         self.node = node
         self.entry = entry
-
+    
     def dicttester(self, o):
+        if hasattr(o, 'thread'):
+            return o.id
         if hasattr(o, '__dict__'):
             return o.__dict__
         else:
