@@ -35,12 +35,13 @@ class Node():
         self.thread = Thread(target = self.listener.serve_forever)
         self.thread.start()
         self.entry_set = calendar.EntrySet()
+        self.init_calendar()
+        self.log = open("log.dat", "a+")
+        self.last = None
 
         if os.path.isfile("log.dat"):
-            self.entry_set.create_from_log()
-        self.log = open("log.dat", "a+")
+            self.entry_set.create_from_log(self)
 
-        self.init_calendar()
 
     def init_calendar(self):
         self.table = TimeTable(len(Node.ips))
@@ -96,17 +97,13 @@ class Node():
             received = sock.recv(1024)
             # Add To EntrySet
         except:
-            print "asdfsdf"
             # Node Down cancel conflict
             if not event == None:
                 d = json.loads(event)
                 dd = json.loads(d['events'][0])
                 event = Event.load(dd)
                 event.entry = Entry.load(event.entry)
-                print event.entry
-                event.type = MessageTypes.Delete
-                test = event.apply(self.entry_set, self)
-                self.events.append(event)
+                self.delete_entry(event.entry)
             pass
 
         finally:
