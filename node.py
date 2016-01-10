@@ -105,8 +105,10 @@ class Node():
                 d = json.loads(event)
                 dd = json.loads(d['events'][0])
                 event = Event.load(dd)
+                event.entry = Entry.load(event.entry)
+                print event.entry
                 event.type = MessageTypes.Delete
-                event = event.apply(self.entry_set, self)
+                test = event.apply(self.entry_set, self)
                 self.events.append(event)
             pass
 
@@ -180,9 +182,10 @@ def main():
                 part = map(int, raw_input("Node Ids of participants (comma seperated): ").split(","))
                 nam = raw_input("Event name: ")
                 day = raw_input("Day: ")
-                _time = raw_input("Time: ")
+                _startTime = raw_input("Start Time: ")
+        _endTime = raw_input("End Time: ")
 
-                entry = Entry(part, nam, day, _time)
+                entry = Entry(part, nam, day, _startTime, _endTime)
                 node.add_entry(entry)
 
             elif resp == 'd':
